@@ -22,5 +22,5 @@ class precision_at_k:
         self.k = k
     
     def precision(self, ranking):
-        return np.float(np.sum(ranking))/self.k
+        return float(np.sum(ranking))/self.k
 
