@@ -16,11 +16,11 @@ def getDF(path):
   return pd.DataFrame(df, columns=["prod_id", "reviewText"])
 
 path = "reviews_Home_and_Kitchen_5.json.gz"
-pick = "reviews_Home_and_Kitchen_5.pickle"
+pickle_file = "reviews_Home_and_Kitchen_5.pickle"
 
 df = getDF(path)
 
-df.to_pickle(pick)
+df.to_pickle(pickle_file)
 
 
 ##read:
