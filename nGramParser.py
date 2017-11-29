@@ -3,6 +3,7 @@
 import pandas as pd
 import gzip
 import numpy as np
+import argparse
 
 from os.path import isfile
 
@@ -73,9 +74,15 @@ def create_nGrams(text, n):
 	return nGrams
 
 if __name__ == '__main__':
-	path = "reviews_Home_and_Kitchen_5.json.gz"
-	n = 4
+	parser = argparse.ArgumentParser(description='Process some integers.')
+	parser.add_argument('-path', type=str, help='path to data', default="reviews_Home_and_Kitchen_5.json.gz" )
+	parser.add_argument('-n', type=int, help='specify n for ngrams', default=4)
 
+	 
+	FLAGS, unparsed = parser.parse_known_args()
+	path = FLAGS.path
+	n = FLAGS.n
+     
 	# i = 0
 	# for nGram in parse_nGrams(path, n):
 	# 	print(nGram)
