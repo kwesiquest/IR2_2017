@@ -16,6 +16,14 @@ def parse_nGrams(path, n):
 		for nGram in create_nGrams(data['reviewText'], n):
 			yield nGram
 
+def parse_batch(path, n):
+	g = gzip.open(path, 'rb')
+	for l in g:
+		data = eval(l)
+		nGrams = create_nGrams(data['reviewText'], n):
+			yield {'entity_id':data['asin'], 'nGrams':nGrams}
+
+
 def create_nGrams(text, n):
 	nGrams = []
 	words = text.split()
