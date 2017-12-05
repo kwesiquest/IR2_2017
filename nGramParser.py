@@ -13,6 +13,7 @@ class returnPackage:
 	#dissimilars = docs * nGrams * words
 	def __init__(self):
 		self.entity_id = ""
+		self.ngrams = []
 		self.docs = []
 		self.dissimilars = []
 
@@ -21,7 +22,8 @@ class EntityDict:
 	# a documents is a list of ngrams
 	# ngrams are a list of strings
 	def __init__(self, path, n, limited=False):
-		# self.entity_pointer = 0
+		self.entity_pointer = 0
+		self.doc_pointer = 0
 		self.path = path
 		self.n = n
 		self.entity_dict = {}
@@ -66,13 +68,24 @@ class EntityDict:
 	# 		self.entity_pointer = 0
 	# 	return next_id
 
-	# # z = number of non-similar entities
-	# def next_entity_continuous(self, z):
-	# 	return_value = returnPackage()
-	# 	return_value.entity_id = self.next_entity_id()
-	# 	return_value.docs = self.entity_dict[return_value.entity_id]
-	# 	return_value.dissimilars = self.get_dissimilars(entity_id, z)
-	# 	return return_value
+	def move_pointers(self):
+		if self.doc_pointer == len(self.entity_dict[self.entities[self.entity_pointer]])-1:
+			self.doc_pointer = 0
+			self.entity_pointer += 1
+			if(self.entity_pointer >= len(self.entities)):
+				self.entity_pointer = 0
+		else:
+			self.doc_pointer += 1
+
+	# z = number of non-similar entities
+	def next_doc_continuous(self, z):
+		return_value = returnPackage()
+		return_value.entity_id = self.entities[self.entity_pointer]
+		return_value.ngrams = self.entity_dict[return_value.entity_id][self.doc_pointer]
+		return_value.docs = self.entity_dict[return_value.entity_id]
+		return_value.dissimilars = self.get_dissimilars(return_value.entity_id, z)
+		self.move_pointers()
+		return return_value
 
 	# z = number of non-similar entities
 	def next_entity(self, z):
@@ -92,19 +105,22 @@ def create_nGrams(text, n):
 		i += 1
 	return nGrams
 
-# if __name__ == '__main__':
-# 	parser = argparse.ArgumentParser(description='Process some integers.')
-# 	parser.add_argument('-path', type=str, help='path to data', default="reviews_Home_and_Kitchen_5.json.gz" )
-# 	parser.add_argument('-n', type=int, help='specify n for ngrams', default=4)
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(description='Process some integers.')
+	parser.add_argument('-path', type=str, help='path to data', default="reviews_Home_and_Kitchen_5.json.gz" )
+	parser.add_argument('-n', type=int, help='specify n for ngrams', default=4)
 
 	 
-# 	FLAGS, unparsed = parser.parse_known_args()
-# 	path = FLAGS.path
-# 	n = FLAGS.n
+	FLAGS, unparsed = parser.parse_known_args()
+	path = FLAGS.path
+	n = FLAGS.n
 
-# 	parser = EntityDict(path, n, True)
+	parser = EntityDict(path, n, True)
 
-# 	i = 0
-# 	for entity in parser.next_entity(2):
-# 		print(i)
-# 		i+= 1
+	i = 0
+	# for entity in parser.next_entity(2):
+	for j in range(0, 10):
+		print(i)
+		i+= 1
+		plur = parser.next_doc_continuous(2)
+		print(plur.entity_id)
