@@ -35,8 +35,8 @@ class Vocab(object):
         else:
             self.vocab_freq = self.get_vocab_freq()
             self.sorted_vocab_freq = self.get_sorted_vocab_freq()
-            self.token2idx = {token: freq for token, freq in self.vocab_freq.items()}
-            self.idx2token = {freq: token for token, freq in self.vocab_freq.items()}
+            self.token2idx = {token: idx for idx, (token, freq) in enumerate(self.sorted_vocab_freq)}
+            self.idx2token = {idx: token for idx, (token, freq) in enumerate(self.sorted_vocab_freq)}
 
     def get_vocab_freq(self):
         self.vocab_freq = defaultdict(int)

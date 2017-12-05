@@ -57,8 +57,8 @@ class EntityDict:
 	def get_dissimilars(self, entity_id, z):
 		dissimilars = []
 		for _ in range(0, z):
-			dissimilars += self.entity_dict[self.get_random_id(entity_id)] #dissimilars is a list of documents
-			# return_value.dissimilars.append(self.entity_dict[self.get_random_id(return_value.entity_id)]) #dissimilars is a list of entities
+			# dissimilars += self.entity_dict[self.get_random_id(entity_id)] #dissimilars is a list of documents
+			dissimilars.append(self.entity_dict[self.get_random_id(entity_id)]) #dissimilars is a list of entities
 		return dissimilars
 
 	# def next_entity_id(self):
