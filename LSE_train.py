@@ -35,18 +35,6 @@ entity_amount = 1
 
 model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE)
 
-#string_placeholder = tf.placeholder(tf.string)
-#one_hot_avg_placeholder = tf.placeholder(tf.float32,shape=(None))
-#matching_placeholder = tf.placeholder(tf.float32,shape=(1,E_SIZE))
-#others_placeholder = tf.placeholder(tf.float32,shape=(None,E_SIZE))
-
-#one_hot = model.getOneHot(string_placeholder)
-#word_emb = model.getWordEmbedding(one_hot_avg_placeholder)
-#predicted = model.getEntityEmbedding(word_emb)
-#similar = model.getSimilarity(matching_placeholder, predicted)
-#dissimilar = model.getSimilarity(others_placeholder,predicted)
-#probability = model.getProbability(similar,dissimilar)
-#loss = model.loss(probability)
 ngrams_placeholder = tf.placeholder(tf.string, shape=(None,N_GRAM_SIZE))
 documents_placeholder = tf.placeholder(tf.string, shape=(None,None,N_GRAM_SIZE))
 dissimilar_placeholder = tf.placeholder(tf.float32, shape=(E_SIZE, None))
