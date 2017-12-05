@@ -9,44 +9,67 @@ import tensorflow as tf
 
 class LSE(object):
 
-    def __init__(self,batch_size, word_emb_size, entity_emb_size,vocab_size, vocabulary):
+    def __init__(self,batch_size, word_emb_size, entity_emb_size,vocab_size, vocabulary, entity_amount, learning_rate):
         
         self.word_emb_size = word_emb_size
         self.entity_emb_size = entity_emb_size
         self.vocab_size = vocab_size
-        self.vocabulary = vocabulary
+        self.entity_amount = entity_amount
+        self.vocabulary = tf.contrib.lookup.index_table_from_tensor(tf.constant(vocabulary),num_oov_buckets=1, default_value=-1)
+        self.learning_rate = learning_rate
+        self.batch_size = batch_size
         
-        self.Wv = tf.get_variable('Wv', shape=(word_emb_size,vocab_size))
-        self.W = tf.get_varaible('W',shape=(entity_emb_size,word_emb_size))
-        self.b = tf.get_variable('b',shape=(entity_emb_size,1))
-        
-        
-    def getOneHot(self, _, word):
-        return tf.one_hot(self.vocabulary[word],self.vocab_size)
-        
-    def getOneHotAverage(self,words):
-        
-        one_hots = tf.scan(self.getOneHot,words)
-        return tf.reduce_mean(one_hots)
-
-    def getWordEmbedding(self,one_hot_avg):
+        self.Wv = tf.get_variable('Wv', shape=(vocab_size,word_emb_size))
+        self.W = tf.get_variable('W',shape=(word_emb_size,entity_emb_size))
+        self.b = tf.get_variable('b',shape=(1,entity_emb_size))
     
-        return tf.matmul(self.Wv,one_hot_avg)
+    # embedding from W_e
+    # input is a docs x ngrams x n tensor
+    def entityEmbedding(self, D):
+        D = tf.one_hot(self.vocabulary.lookup(D),self.vocab_size)
+        D = tf.squeeze(D,axis=2)
+        s = tf.reduce_sum(D,axis=0)
+        s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
+        D = tf.reduce_sum(D,axis=1)
+        D = tf.divide(D,s)
+        D = tf.matmul(D, self.Wv)
+        D = tf.tanh(tf.matmul(D,self.W) + self.b)
+        return tf.reduce_sum(D,axis = 0)
     
-    def getEntityEmbedding(self,wordEmbedding):
-
-        return tf.tanh(tf.matmul(self.W,wordEmbedding) + self.b)
+    # projects ngrams into entity embedding space
+    # ngrams x n
+    def project(self,ngrams):
+        D = tf.one_hot(self.vocabulary.lookup(ngrams),self.vocab_size)
+        D = tf.squeeze(D,axis=1)
+        s = tf.reduce_sum(D,axis=0)
+        s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
+        D = tf.divide(D,s)
+        D = tf.matmul(D, self.Wv)
+        D = tf.tanh(tf.matmul(D,self.W) + self.b)
+        return D
     
-    def getSimilarity(self,entities, mapping):
-        # entities: examples x ev 
-        # mapping: 1 x ev
-        # res: examples x 1
-        return tf.sigmoid(tf.matmul(entities,tf.transpose(mapping)))
+    # returns similarity score 
+    # takes a e_emb similar, e_emb dissimilar x docs, ngrams x e_emb projection
+    def similarity(self,similar, dissimilar, projection):
+        
+        similar = tf.expand_dims(similar,1)
+        S = tf.sigmoid(tf.matmul(projection, similar)) # ngrams x 1
+        S = tf.log(S)
+        
+        SD = tf.sigmoid(tf.matmul(projection, dissimilar)) # ngrams x docs
+        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # ngrams x 1
+        SD = tf.log((1- SD))
+        
+        return S + SD
     
     def getProbability(self,similar,dissimilar):
         
         return tf.log(similar) + tf.reduce_sum(tf.log(1 - dissimilar))
     
-    def loss(self, probability):
+    # returns mean loss of ngrams x 1
+    def loss(self, similarity):
+        return - tf.reduce_mean(similarity)
+    
+    def train_step(self,loss):
         
-        return - 1 / self.batch_size # add regularization
+        return tf.train.GradientDescentOptimizer(self.learning_rate).minimize(loss)
