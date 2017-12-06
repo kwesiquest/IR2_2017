@@ -94,9 +94,9 @@ class EntityDict:
 		return_value = bigReturnPackage()
 		for n in range(0, nDocs):
 			return_value.entity_ids.append(self.get_random_id())
-			return_value.docs.append(self.get_random_doc(return_value.entity_ids[n]))
-			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]])
-			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z))
+			return_value.docs.append(self.get_random_doc(return_value.entity_ids[n])[:])
+			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]][:])
+			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z)[:])
 		return return_value
 
 	# z = number of non-similar entities
