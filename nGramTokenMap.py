@@ -4,6 +4,7 @@ from string import punctuation
 import pickle
 import gzip
 import re
+from stopwords import stopwords
 
 
 def tokenise(review):
@@ -13,7 +14,7 @@ def tokenise(review):
     review = punctuation_regex.sub(' ', review)
     review = re.sub(r"'+", "", review)
     tokens = review.lower().split()
-    tokens = ['6'*len(token) if token.isdigit() else token for token in tokens]
+    tokens = ['6'*len(token) if token.isdigit() else token for token in tokens if token not in stopwords]
     return tokens
 
 
