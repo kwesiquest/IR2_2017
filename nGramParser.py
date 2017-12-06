@@ -17,6 +17,15 @@ class returnPackage:
 		self.docs = []
 		self.dissimilars = []
 
+class bigReturnPackage:
+	#docs = docs * nGrams * words
+	#dissimilars = docs * nGrams * words
+	def __init__(self):
+		self.entity_ids = []
+		self.docs = []
+		self.similars = []
+		self.dissimilars = []
+
 class EntityDict:
 	# creates a dictionary with entities as keys and all the corresponding documents (in  a list) as values
 	# a documents is a list of ngrams
@@ -47,12 +56,19 @@ class EntityDict:
 		for l in g:
 			yield eval(l)
 
-	def get_random_id(self, entity_id):
+
+
+	def get_random_id(self, entity_id="0"):
 		g = gzip.open(self.path, 'rb')
 		different_id = entity_id
 		while(entity_id == different_id):
 			different_id = np.random.choice(self.entities)
 		return different_id
+
+	def get_random_doc(self, entity_id):
+		print("entity_id", entity_id)
+		index = np.random.randint(len(self.entity_dict[entity_id]))
+		return(self.entity_dict[entity_id][index])
 
 	def get_dissimilars(self, entity_id, z):
 		dissimilars = []
@@ -76,6 +92,15 @@ class EntityDict:
 				self.entity_pointer = 0
 		else:
 			self.doc_pointer += 1
+
+	def get_random_batch(self, z, nDocs):
+		return_value = bigReturnPackage()
+		for n in range(0, nDocs):
+			return_value.entity_ids.append(self.get_random_id())
+			return_value.docs.append(self.get_random_doc(return_value.entity_ids[n]))
+			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]])
+			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z))
+		return return_value
 
 	# z = number of non-similar entities
 	def next_doc_continuous(self, z):
@@ -115,12 +140,17 @@ if __name__ == '__main__':
 	path = FLAGS.path
 	n = FLAGS.n
 
-	parser = EntityDict(path, n, True)
+	# parser = EntityDict(path, n, True)
 
-	i = 0
+	# values = parser.next_docs_random(2, 5)
+
+	# for value, doc in zip(values.entity_ids, values.docs):
+	# 	print(value, doc)
+
+	# i = 0
 	# for entity in parser.next_entity(2):
-	for j in range(0, 10):
-		print(i)
-		i+= 1
-		plur = parser.next_doc_continuous(2)
-		print(plur.entity_id)
+	# for j in range(0, 10):
+	# 	i+= 1
+	# 	plur = parser.next_doc_continuous(2)
+	# 	print(i, plur.entity_id)
+
