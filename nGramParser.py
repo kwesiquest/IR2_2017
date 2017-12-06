@@ -7,6 +7,7 @@
 import gzip
 import numpy as np
 import argparse
+from nGramTokenMap import tokenise
 
 class returnPackage:
 	#docs = docs * nGrams * words
@@ -76,13 +77,6 @@ class EntityDict:
 			dissimilars.append(self.entity_dict[self.get_random_id(entity_id)]) #dissimilars is a list of entities
 		return dissimilars
 
-	# def next_entity_id(self):
-	# 	next_id = self.entities[self.entity_pointer]
-	# 	self.entity_pointer += 1
-	# 	if(self.entity_pointer >= len(self.entities)):
-	# 		self.entity_pointer = 0
-	# 	return next_id
-
 	def move_pointers(self):
 		if self.doc_pointer == len(self.entity_dict[self.entities[self.entity_pointer]])-1:
 			self.doc_pointer = 0
@@ -92,6 +86,8 @@ class EntityDict:
 		else:
 			self.doc_pointer += 1
 
+	# z = number of non-similar entities
+	# nDocs = number of return values
 	def get_random_batch(self, z, nDocs):
 		return_value = bigReturnPackage()
 		for n in range(0, nDocs):
@@ -122,7 +118,7 @@ class EntityDict:
 
 def create_nGrams(text, n):
 	nGrams = []
-	words = text.split()
+	words = tokenise(text)
 	i = 0
 	while i+n <= len(words):
 		nGrams.append(words[i:i+n])
@@ -139,12 +135,12 @@ if __name__ == '__main__':
 	path = FLAGS.path
 	n = FLAGS.n
 
-	# parser = EntityDict(path, n, True)
+	parser = EntityDict(path, n, True)
 
-	# values = parser.next_docs_random(2, 5)
+	values = parser.get_random_batch(2, 5)
 
-	# for value, doc in zip(values.entity_ids, values.docs):
-	# 	print(value, doc)
+	for value, doc in zip(values.entity_ids, values.docs):
+		print(value, doc)
 
 	# i = 0
 	# for entity in parser.next_entity(2):
