@@ -18,6 +18,7 @@ class LSE(object):
         self.vocabulary = tf.contrib.lookup.index_table_from_tensor(tf.constant(vocabulary),num_oov_buckets=1, default_value=-1)
         self.learning_rate = learning_rate
         self.batch_size = batch_size
+        self.e = 1e-5
         
         self.Wv = tf.get_variable('Wv', shape=(vocab_size,word_emb_size))
         self.W = tf.get_variable('W',shape=(word_emb_size,entity_emb_size))
@@ -58,7 +59,7 @@ class LSE(object):
         
         SD = tf.sigmoid(tf.matmul(projection, dissimilar)) # ngrams x docs
         SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # ngrams x 1
-        SD = tf.log((1- SD))
+        SD = tf.log((1- SD + self.e))
         
         return S + SD
     

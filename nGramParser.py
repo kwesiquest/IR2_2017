@@ -10,8 +10,9 @@ import argparse
 from nGramTokenMap import tokenise
 
 class returnPackage:
+	#ngrams = nGrams * words
 	#docs = docs * nGrams * words
-	#dissimilars = docs * nGrams * words
+	#dissimilars = entities * docs * nGrams * words
 	def __init__(self):
 		self.entity_id = ""
 		self.ngrams = []
@@ -20,7 +21,8 @@ class returnPackage:
 
 class bigReturnPackage:
 	#docs = docs * nGrams * words
-	#dissimilars = docs * nGrams * words
+	#similars = entities * docs * nGrams * words
+	#dissimilars = entities * docs * nGrams * words
 	def __init__(self):
 		self.entity_ids = []
 		self.docs = []
@@ -45,9 +47,9 @@ class EntityDict:
 			try:
 				self.entity_dict[entity_id].append(nGrams)
 			except:
+				if limited and (len(self.entity_dict.keys()) >= 4):
+					break
 				self.entity_dict[entity_id] = [nGrams]
-			if limited and (len(self.entity_dict.keys()) >= 4):
-				break
 		self.entities = list(self.entity_dict.keys())
 		print("created entity dictionary containing", len(self.entities), "entities.")
 
@@ -92,9 +94,9 @@ class EntityDict:
 		return_value = bigReturnPackage()
 		for n in range(0, nDocs):
 			return_value.entity_ids.append(self.get_random_id())
-			return_value.docs.append(self.get_random_doc(return_value.entity_ids[n]))
-			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]])
-			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z))
+			return_value.docs.append(self.get_random_doc(return_value.entity_ids[n])[:])
+			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]][:])
+			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z)[:])
 		return return_value
 
 	# z = number of non-similar entities
@@ -137,10 +139,10 @@ if __name__ == '__main__':
 
 	parser = EntityDict(path, n, True)
 
-	values = parser.get_random_batch(2, 5)
+	values = parser.get_random_batch(2, 15)
 
-	for value, doc in zip(values.entity_ids, values.docs):
-		print(value, doc)
+	for value, similar in zip(values.entity_ids, values.similars):
+		print(value, len(similar))
 
 	# i = 0
 	# for entity in parser.next_entity(2):
