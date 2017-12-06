@@ -3,16 +3,18 @@ import numpy as np
 class NDCG_at_k:
     
     def __init__(self, k=10):
+        self.k = k
         max_relevance = [1] + [0] * k
         self.normalizing_factor = self.NDCG(max_relevance, k, norm=False) 
         
-    def NDCG(self, ranking, k, norm):    
+    def NDCG(self, ranking, norm):
         discounted_gain = []
     
-        for rank, relevance in enumerate(ranking[0:k]):
+        for rank, relevance in enumerate(ranking[0:self.k]):
             discounted_gain.append(((2.**relevance)-1)/float(np.log2(rank + 2)))
         
         DG = sum(discounted_gain)
+
         if norm:
             return DG/self.normalizing_factor
         else: return DG
