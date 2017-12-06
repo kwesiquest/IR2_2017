@@ -132,7 +132,7 @@ if __name__ == '__main__':
 	parser.add_argument('-path', type=str, help='path to data', default="reviews_Home_and_Kitchen_5.json.gz" )
 	parser.add_argument('-n', type=int, help='specify n for ngrams', default=4)
 
-	 
+
 	FLAGS, unparsed = parser.parse_known_args()
 	path = FLAGS.path
 	n = FLAGS.n
