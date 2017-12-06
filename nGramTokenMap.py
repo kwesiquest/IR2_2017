@@ -1,4 +1,4 @@
-from os.path import isfile
+from os.path import isfile, split
 from collections import defaultdict, Counter
 from string import punctuation
 import pickle
@@ -59,12 +59,13 @@ class Vocab(object):
         return self.sorted_vocab_freq
 
     def get_vocab_object_file_name(self):
+        path_to, filename = split(self.path)
         start = 'reviews'
         end = '_5.json.gz'
-        assert self.path.startswith(start) and self.path.endswith(end)
-        subset = self.path[len(start): -len(end)]
-        filename = 'Vocab_object{}.pickle'.format(subset)
-        return filename
+        assert filename.startswith(start) and filename.endswith(end)
+        subset = filename[len(start): -len(end)]
+        picklename = 'Vocab_object{}.pickle'.format(subset)
+        return path_to + '/' + picklename
 
     def pickle_exists(self):
         filename = self.get_vocab_object_file_name()
@@ -72,6 +73,7 @@ class Vocab(object):
 
     @staticmethod
     def load_vocab_object_from_pickle(vocab, pickle_file):
+        print("Unpickling:", pickle_file)
         with open(pickle_file, 'rb') as handle:
             vocab_object = pickle.load(handle)
         vocab.vocab_freq = vocab_object.vocab_freq
