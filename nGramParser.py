@@ -66,7 +66,6 @@ class EntityDict:
 		return different_id
 
 	def get_random_doc(self, entity_id):
-		print("entity_id", entity_id)
 		index = np.random.randint(len(self.entity_dict[entity_id]))
 		return(self.entity_dict[entity_id][index])
 
