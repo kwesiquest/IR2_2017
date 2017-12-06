@@ -180,3 +180,7 @@ def _get_stopwords():
     return stopwords_list
 
 stopwords = _get_stopwords()
+
+
+if __name__ == '__main__':
+    pass
