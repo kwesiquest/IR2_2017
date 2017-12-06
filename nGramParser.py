@@ -10,8 +10,9 @@ import argparse
 from nGramTokenMap import tokenise
 
 class returnPackage:
+	#ngrams = nGrams * words
 	#docs = docs * nGrams * words
-	#dissimilars = docs * nGrams * words
+	#dissimilars = entities * docs * nGrams * words
 	def __init__(self):
 		self.entity_id = ""
 		self.ngrams = []
@@ -20,7 +21,8 @@ class returnPackage:
 
 class bigReturnPackage:
 	#docs = docs * nGrams * words
-	#dissimilars = docs * nGrams * words
+	#similars = entities * docs * nGrams * words
+	#dissimilars = entities * docs * nGrams * words
 	def __init__(self):
 		self.entity_ids = []
 		self.docs = []
@@ -45,9 +47,9 @@ class EntityDict:
 			try:
 				self.entity_dict[entity_id].append(nGrams)
 			except:
+				if limited and (len(self.entity_dict.keys()) >= 4):
+					break
 				self.entity_dict[entity_id] = [nGrams]
-			if limited and (len(self.entity_dict.keys()) >= 4):
-				break
 		self.entities = list(self.entity_dict.keys())
 		print("created entity dictionary containing", len(self.entities), "entities.")
 
@@ -137,10 +139,10 @@ if __name__ == '__main__':
 
 	parser = EntityDict(path, n, True)
 
-	values = parser.get_random_batch(2, 5)
+	values = parser.get_random_batch(2, 15)
 
-	for value, doc in zip(values.entity_ids, values.docs):
-		print(value, doc)
+	for value, similar in zip(values.entity_ids, values.similars):
+		print(value, len(similar))
 
 	# i = 0
 	# for entity in parser.next_entity(2):
