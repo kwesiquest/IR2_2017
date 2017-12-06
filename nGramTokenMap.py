@@ -65,7 +65,10 @@ class Vocab(object):
         assert filename.startswith(start) and filename.endswith(end)
         subset = filename[len(start): -len(end)]
         picklename = 'Vocab_object{}.pickle'.format(subset)
-        return path_to + '/' + picklename
+        if len(path_to) == 0:
+            return picklename
+        else:
+            return path_to + '/' + picklename
 
     def pickle_exists(self):
         filename = self.get_vocab_object_file_name()
