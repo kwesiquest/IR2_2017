@@ -25,49 +25,56 @@ class LSE(object):
         self.b = tf.get_variable('b',shape=(1,entity_emb_size))
     
     # embedding from W_e
-    # input is a docs x ngrams x n tensor
+    # input is a batch x entities x docs x ngrams x n tensor
+    # returns a batch x entities x e_emb tensor
     def entityEmbedding(self, D):
+    
         D = tf.one_hot(self.vocabulary.lookup(D),self.vocab_size)
-        D = tf.squeeze(D,axis=2)
-        s = tf.reduce_sum(D,axis=0)
+        D = tf.squeeze(D,axis=4) # b x e x d x n x V
+        s = tf.reduce_sum(D,axis=2) # b x e x n x V
         s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
-        D = tf.reduce_sum(D,axis=1)
-        D = tf.divide(D,s)
-        D = tf.matmul(D, self.Wv)
-        D = tf.tanh(tf.matmul(D,self.W) + self.b)
-        return tf.reduce_sum(D,axis = 0)
+        D = tf.reduce_sum(D,axis=2)
+        D = tf.divide(D,s) # b x e x n x V
+        D = tf.tensordot(D, self.Wv,1) # b x e x n x emb
+        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)
+        return tf.reduce_sum(D,axis = 2)
     
     # projects ngrams into entity embedding space
-    # ngrams x n
+    # batch x ngrams x n
+    # returns batch x ngrams x emb
     def project(self,ngrams):
         D = tf.one_hot(self.vocabulary.lookup(ngrams),self.vocab_size)
-        D = tf.squeeze(D,axis=1)
-        s = tf.reduce_sum(D,axis=0)
+        D = tf.squeeze(D,axis=2)
+        s = tf.reduce_sum(D,axis=1)
         s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
         D = tf.divide(D,s)
-        D = tf.matmul(D, self.Wv)
-        D = tf.tanh(tf.matmul(D,self.W) + self.b)
+        D = tf.tensordot(D, self.Wv,1)
+        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)
         return D
     
     # returns similarity score 
-    # takes a e_emb similar, e_emb dissimilar x docs, ngrams x e_emb projection
+    # takes a batch x entities x emb similar
+    # batch x entities x emb dissimilars
+    # batch x ngrams x emb projection
     def similarity(self,similar, dissimilar, projection):
+               
+        projection = tf.transpose(projection, [0,2,1])
         
-        similar = tf.expand_dims(similar,1)
-        S = tf.sigmoid(tf.matmul(projection, similar)) # ngrams x 1
+        S = tf.sigmoid(tf.matmul(similar, projection)) 
+        S = tf.expand_dims(S,3) # batch x entities x ngrams x 1
         S = tf.log(S)
-        
-        SD = tf.sigmoid(tf.matmul(projection, dissimilar)) # ngrams x docs
-        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # ngrams x 1
+        S = tf.reduce_sum(S,1) # batch x ngrams x 1
+#        
+        SD = tf.sigmoid(tf.matmul(dissimilar,projection)) # batch x entities x ngrams
+        SD = tf.expand_dims(SD,3) # batch x entities x ngrams x 1
+#        SD = tf.reduce_sum(SD, axis = 3, keep_dims = True)
         SD = tf.log((1- SD + self.e))
-        
+        SD = tf.reduce_sum(SD,1) # batch x ngrams x 1
+#        
         return S + SD
-    
-    def getProbability(self,similar,dissimilar):
-        
-        return tf.log(similar) + tf.reduce_sum(tf.log(1 - dissimilar))
-    
-    # returns mean loss of ngrams x 1
+#        return SD
+
+    # returns mean loss of batch x ngrams x 1
     def loss(self, similarity):
         return - tf.reduce_mean(similarity)
     

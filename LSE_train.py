@@ -14,23 +14,29 @@ import sys
 from LSE import LSE as LSE
 
    
-def pad_entities(entities):
+def pad_entities(batch):
     
     doc_length = 0
+    entity_length = 0
     
-    for entity in entities:
-        leng = np.amax([len(doc) for doc in entity])
-        if leng > doc_length:
-            doc_length = leng
-    
-    entity_length = np.amax([len(entity) for entity in entities])
-    
-    for entity in entities:
+    for entities in batch:
+        leng = np.amax([len(entity) for entity in entities])
+        if leng > entity_length:
+            entity_length = leng
         
-        while len(entity) < entity_length:
-            entity.append([['z3r0'] * N_GRAM_SIZE])
-        
-        pad_entity(entity,leng=doc_length)
+        for entity in entities:
+
+            leng = np.amax([len(doc) for doc in entity])
+            if leng > doc_length:
+                doc_length = leng
+                
+    for entities in batch:
+        for entity in entities:
+            
+            while len(entity) < entity_length:
+                entity.append([['z3r0'] * N_GRAM_SIZE])
+            
+            pad_entity(entity,leng=doc_length)
         
                 
 def pad_entity(entity,leng=0):
@@ -43,18 +49,18 @@ def pad_entity(entity,leng=0):
 
 BATCH_SIZE = 10
 W_SIZE = 100
-E_SIZE = 150
+E_SIZE = 153
 LEARNING_RATE = 1e-3
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 1
+DISSIMILAR_AMOUNT = 2
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
 print('Preprocessing')
 vocab = Vocab(PATH_TO_DATA)
-vocabulary = list(vocab.token2idx.keys())[:5000]
+vocabulary = list(vocab.token2idx.keys())[:100]
 vocab_size = len(vocabulary)
 print('Finished vocabulary')
 #vocabulary = ['a','b','c','d']
@@ -69,15 +75,16 @@ print('Initializing Model')
 model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE)
 print('Finished Model')
 
-ngrams_placeholder = tf.placeholder(tf.string, shape=(None,N_GRAM_SIZE))
-documents_placeholder = tf.placeholder(tf.string, shape=(None,None,N_GRAM_SIZE))
-dissimilar_placeholder = tf.placeholder(tf.float32, shape=(E_SIZE, None))
+ngrams_placeholder = tf.placeholder(tf.string, shape=(None,None,N_GRAM_SIZE))
+similar_placeholder = tf.placeholder(tf.string, shape=(None,None,None,None,N_GRAM_SIZE))
+dissimilar_placeholder = tf.placeholder(tf.string, shape=(None,None,None,None,N_GRAM_SIZE))
 
 global_step = tf.Variable(0)
 
-entity = model.entityEmbedding(documents_placeholder)
+similar = model.entityEmbedding(similar_placeholder)
+dissimilar = model.entityEmbedding(dissimilar_placeholder)
 projection = model.project(ngrams_placeholder)
-similarity = model.similarity(entity, dissimilar_placeholder, projection)
+similarity = model.similarity(similar, dissimilar, projection)
 loss = model.loss(similarity)
 train_step = model.train_step(loss)
 
@@ -92,56 +99,76 @@ with tf.Session() as sess:
     sess.run(init)
     tf.tables_initializer().run()
     
-    batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
-    
     for i in range(TRAIN_STEPS):
         print(i)
+        batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
+        ngrams = batch.getDocs()
         
-       
-        ngrams = batch.docs
-        similar = batch.similars
-        dissimilars = batch.dissimilars
-        
+        print(batch.docs)
+        for j in range(5):
+            print('--------------------')
         pad_entity(ngrams)
-        print(np.array(ngrams).shape)
-                
+        print(batch.docs)
+        
+        
+        sys.exit(0)
+        
+        similar = list(batch.similars)
+        dissimilars = list(batch.dissimilars)
+        
+        print(ngrams)
+        
+        for j in range(BATCH_SIZE):
+            similar[j] = [similar[j]]
+        
+        pad_entity(ngrams)        
         pad_entities(similar)
+        pad_entities(dissimilars)
+        
+        print(np.array(ngrams).shape)
         print(np.array(similar).shape)
+        print(np.array(dissimilars).shape)
+        
     
-        ngrams_feed = {ngrams_placeholder: ngrams}
-        ngrams_emb = sess.run(projection,feed_dict = ngrams_feed) 
-    
-        similar_feed = {documents_placeholder: similar}
-        similar_emb = sess.run(entity,feed_dict = similar_feed)
-
-        dissimilar_feed = {documents_placeholder: dissimilars}
-        dissimilar_emb = sess.run(entity, feed_dict = dissimilar_feed)
+#        ngrams_feed = {ngrams_placeholder: ngrams}
+#        ngrams_emb = sess.run(projection,feed_dict = ngrams_feed) 
+#        
+#        print(ngrams_emb.shape)
+#    
+#        similar_feed = {documents_placeholder: similar}
+#        similar_emb = sess.run(entity,feed_dict = similar_feed)
+#        
+#        print(similar_emb.shape)
+#
+#        dissimilar_feed = {documents_placeholder: dissimilars}
+#        dissimilar_emb = sess.run(entity, feed_dict = dissimilar_feed)
+#        
+#        print(dissimilar_emb.shape)
         
         
-        
-        diss = None
-        for dissimilar in dissimilars:
-            pad_entities(dissimilar)
-            print(np.array(dissimilar).shape)
-            sys.exit(0)
-            dissimilar = np.array(dissimilar)
-#            print('D',dissimilar.shape)
-            dissimilar_feed = {documents_placeholder: dissimilar}
-            dissimilar_emb = sess.run(entity,feed_dict = dissimilar_feed)
-            dissimilar_emb = np.expand_dims(dissimilar_emb,1)
-            if diss == None:
-                diss = dissimilar_emb
-            else:
-                diss = np.stack(diss,dissimilar_emb, 1)
+#        diss = None
+#        for dissimilar in dissimilars:
+#            pad_entities(dissimilar)
+#            print(np.array(dissimilar).shape)
+#            sys.exit(0)
+#            dissimilar = np.array(dissimilar)
+##            print('D',dissimilar.shape)
+#            dissimilar_feed = {documents_placeholder: dissimilar}
+#            dissimilar_emb = sess.run(entity,feed_dict = dissimilar_feed)
+#            dissimilar_emb = np.expand_dims(dissimilar_emb,1)
+#            if diss == None:
+#                diss = dissimilar_emb
+#            else:
+#                diss = np.stack(diss,dissimilar_emb, 1)
         #print('----')
         #print(diss)
         
 
         
-        #print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
-        print(sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
-        sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
-        summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
+#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
+        print(sess.run(loss, feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
+        sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars})
+        summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars})
         trainWriter.add_summary(summ, global_step=i)
     
     
