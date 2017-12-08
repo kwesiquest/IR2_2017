@@ -94,7 +94,9 @@ class EntityDict:
 		return_value = bigReturnPackage()
 		for n in range(0, nDocs):
 			return_value.entity_ids.append(self.get_random_id())
-			return_value.docs.append(self.get_random_doc(return_value.entity_ids[n])[:])
+			# return_value.docs.append(self.get_random_doc(return_value.entity_ids[n])[:])
+			docs = self.get_random_doc(return_value.entity_ids[n])[:]
+			return_value.docs.append(docs[np.random.randint(len(docs))])
 			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]][:])
 			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z)[:])
 		return return_value
@@ -141,8 +143,9 @@ if __name__ == '__main__':
 
 	values = parser.get_random_batch(2, 15)
 
-	for value, similar in zip(values.entity_ids, values.similars):
-		print(value, len(similar))
+	for value, docs in zip(values.entity_ids, values.docs):
+		print(value, len(docs))
+		
 
 	# i = 0
 	# for entity in parser.next_entity(2):
