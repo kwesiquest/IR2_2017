@@ -10,6 +10,7 @@ import tensorflow as tf
 from nGramParser import EntityDict as edict
 from nGramTokenMap import Vocab
 import sys
+import copy
 
 from LSE import LSE as LSE
 
@@ -40,6 +41,7 @@ def pad_entities(batch):
         
                 
 def pad_entity(entity,leng=0):
+    
     if leng == 0: 
         leng = np.amax([len(doc) for doc in entity])
     
@@ -47,23 +49,24 @@ def pad_entity(entity,leng=0):
         while len(doc) < leng:
             doc.append(['z3r0'] * N_GRAM_SIZE)
 
-BATCH_SIZE = 10
+BATCH_SIZE = 1
 W_SIZE = 100
-E_SIZE = 153
-LEARNING_RATE = 1e-3
+E_SIZE = 150
+LEARNING_RATE = 100
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 2
+DISSIMILAR_AMOUNT = 1
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
 print('Preprocessing')
 vocab = Vocab(PATH_TO_DATA)
-vocabulary = list(vocab.token2idx.keys())[:100]
+#vocabulary = ['a','b','c','d']
+vocabulary = list(vocab.token2idx.keys())[:10000]
 vocab_size = len(vocabulary)
 print('Finished vocabulary')
-#vocabulary = ['a','b','c','d']
+
 print('Vocab size:', vocab_size)
 
 #ngrams = [['a'],['b'],['-']]
@@ -99,24 +102,14 @@ with tf.Session() as sess:
     sess.run(init)
     tf.tables_initializer().run()
     
+    batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
+    
     for i in range(TRAIN_STEPS):
         print(i)
-        batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
-        ngrams = batch.getDocs()
-        
-        print(batch.docs)
-        for j in range(5):
-            print('--------------------')
-        pad_entity(ngrams)
-        print(batch.docs)
-        
-        
-        sys.exit(0)
-        
-        similar = list(batch.similars)
-        dissimilars = list(batch.dissimilars)
-        
-        print(ngrams)
+       
+        ngrams = copy.deepcopy(batch.docs)
+        similar = copy.deepcopy(batch.similars)
+        dissimilars = copy.deepcopy(batch.dissimilars)
         
         for j in range(BATCH_SIZE):
             similar[j] = [similar[j]]
@@ -129,11 +122,15 @@ with tf.Session() as sess:
         print(np.array(similar).shape)
         print(np.array(dissimilars).shape)
         
-    
+#        ngrams = [[['a'],['b'],['z'],['z']]]
 #        ngrams_feed = {ngrams_placeholder: ngrams}
-#        ngrams_emb = sess.run(projection,feed_dict = ngrams_feed) 
+#        ngrams_emb,s,w = sess.run(projection,feed_dict = ngrams_feed) 
 #        
+#        print(ngrams_emb)
 #        print(ngrams_emb.shape)
+#        print(s)
+#        print(w)
+#        break
 #    
 #        similar_feed = {documents_placeholder: similar}
 #        similar_emb = sess.run(entity,feed_dict = similar_feed)
@@ -145,7 +142,7 @@ with tf.Session() as sess:
 #        
 #        print(dissimilar_emb.shape)
         
-        
+#        
 #        diss = None
 #        for dissimilar in dissimilars:
 #            pad_entities(dissimilar)
@@ -160,12 +157,10 @@ with tf.Session() as sess:
 #                diss = dissimilar_emb
 #            else:
 #                diss = np.stack(diss,dissimilar_emb, 1)
-        #print('----')
-        #print(diss)
+#        print('----')
+#        print(diss)
         
-
-        
-#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
+        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
         print(sess.run(loss, feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
         sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars})
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars})
