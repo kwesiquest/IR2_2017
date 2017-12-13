@@ -13,6 +13,7 @@ import sys
 import copy 
 from LSE import LSE as LSE
 import operator
+from os.path import exists
 
    
 def pad_dissimilar(dissimilars):
@@ -68,11 +69,19 @@ def pad_entity(entity,leng=0):
         while len(doc) < leng:
             doc.append(['z3r0'] * N_GRAM_SIZE)
 
+def next_folder():
+    name = 'summaries/train/run'
+    nr = 11
+    while exists(name+str(nr)):
+        nr += 1
+    return name + str(nr)
+
 BATCH_SIZE = 1
 W_SIZE = 100
 E_SIZE = 150
 LEARNING_RATE = 1e-3
-PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
+# PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
+PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
 TRAIN_STEPS = 10
 N_GRAM_SIZE = 1
@@ -124,7 +133,7 @@ init = tf.global_variables_initializer()
 
 tf.summary.scalar('Loss', loss)
 merged = tf.summary.merge_all()
-trainWriter = tf.summary.FileWriter('summaries/train/run11')
+trainWriter = tf.summary.FileWriter(next_folder())
 
 print('Start Training')
 with tf.Session() as sess:
