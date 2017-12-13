@@ -68,7 +68,7 @@ def pad_entity(entity,leng=0):
         while len(doc) < leng:
             doc.append(['z3r0'] * N_GRAM_SIZE)
 
-BATCH_SIZE = 128
+BATCH_SIZE = 16
 W_SIZE = 100
 E_SIZE = 150
 LEARNING_RATE = 1e-3
