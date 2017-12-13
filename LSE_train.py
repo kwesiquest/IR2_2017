@@ -87,7 +87,7 @@ vocabulary = ['z3r0','Unk']
 full_vocab = vocab.vocab_freq
 sorted_vocab = sorted(full_vocab.items(), key=operator.itemgetter(1), reverse=True)
 full_vocab = [tup[0] for tup in sorted_vocab]
-print(len(full_vocab))
+print("full vocab size:", len(full_vocab))
 vocabulary += full_vocab[:20000]
 
 
@@ -133,7 +133,7 @@ with tf.Session() as sess:
     batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
     
     for i in range(TRAIN_STEPS):
-        print(i)
+        print("train step:", i)
 
         
         ngrams = copy.deepcopy(batch.docs)
@@ -191,7 +191,7 @@ with tf.Session() as sess:
         
         
 #        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
-        print(sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
+        print("loss:", sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
         sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         trainWriter.add_summary(summ, global_step=i)
