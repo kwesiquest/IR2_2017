@@ -11,6 +11,7 @@ from nGramParser import EntityDict as edict
 from nGramTokenMap import Vocab
 import sys
 import copy
+import operator
 
 from LSE import LSE as LSE
 
@@ -58,12 +59,32 @@ TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
 DISSIMILAR_AMOUNT = 1
 
+#print('Loading data')
+#data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
+#print('Preprocessing')
+#vocab = Vocab(PATH_TO_DATA)
+##vocabulary = ['a','b','c','d']
+#vocabulary = list(vocab.token2idx.keys())[:10000]
+#vocab_size = len(vocabulary)
+#print('Finished vocabulary')
+#
+#print('Vocab size:', vocab_size)
+
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
 print('Preprocessing')
 vocab = Vocab(PATH_TO_DATA)
-#vocabulary = ['a','b','c','d']
-vocabulary = list(vocab.token2idx.keys())[:10000]
+#vocabulary = ['z3r0','a','b','c','d']
+vocabulary = ['z3r0','Unk']
+
+full_vocab = vocab.vocab_freq
+sorted_vocab = sorted(full_vocab.items(), key=operator.itemgetter(1), reverse=True)
+full_vocab = [tup[0] for tup in sorted_vocab]
+print("full vocab size:", len(full_vocab))
+vocabulary += full_vocab[:20000]
+
+
+#vocabulary += list(vocab.token2idx.keys())[:1000]
 vocab_size = len(vocabulary)
 print('Finished vocabulary')
 
@@ -102,11 +123,11 @@ with tf.Session() as sess:
     sess.run(init)
     tf.tables_initializer().run()
     
-    batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
+
     
     for i in range(TRAIN_STEPS):
         print(i)
-       
+        batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
         ngrams = copy.deepcopy(batch.docs)
         similar = copy.deepcopy(batch.similars)
         dissimilars = copy.deepcopy(batch.dissimilars)
@@ -117,10 +138,10 @@ with tf.Session() as sess:
         pad_entity(ngrams)        
         pad_entities(similar)
         pad_entities(dissimilars)
-        
-        print(np.array(ngrams).shape)
-        print(np.array(similar).shape)
-        print(np.array(dissimilars).shape)
+#        
+#        print(np.array(ngrams).shape)
+#        print(np.array(similar).shape)
+#        print(np.array(dissimilars).shape)
         
 #        ngrams = [[['a'],['b'],['z'],['z']]]
 #        ngrams_feed = {ngrams_placeholder: ngrams}
@@ -160,7 +181,7 @@ with tf.Session() as sess:
 #        print('----')
 #        print(diss)
         
-        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
+#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
         print(sess.run(loss, feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars}))
         sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars})
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, similar_placeholder: similar, dissimilar_placeholder: dissimilars})

@@ -28,30 +28,60 @@ class LSE(object):
     # input is a batch x entities x docs x ngrams x n tensor
     # returns a batch x entities x e_emb tensor
     def entityEmbedding(self, D):
-    
-        D = tf.one_hot(self.vocabulary.lookup(D),self.vocab_size)
-        D = tf.squeeze(D,axis=4) # b x e x d x n x V
-        s = tf.reduce_sum(D,axis=2) # b x e x n x V
-        s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
-        D = tf.reduce_sum(D,axis=2)
-        D = tf.divide(D,s) # b x e x n x V
-        D = tf.tensordot(D, self.Wv,1) # b x e x n x emb
-        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)
-        return tf.reduce_sum(D,axis = 2)
+        
+        D = self.vocabulary.lookup(D) # b x e x d x n x w
+        t = tf.cast(tf.equal(D,tf.constant(0,dtype=tf.int64)),tf.float32)
+        D = tf.cast(tf.cast(D,tf.float32)-t,tf.int64)
+        D = tf.one_hot(D,self.vocab_size) # b x e x d x n x w x V
+        s = tf.reduce_sum(D,axis=5) # b x e x d x n x w
+        s = tf.reduce_sum(s,axis=4,keep_dims=True) + self.e # b x e x d x n
+
+        D = tf.reduce_sum(D,axis=4) # b x e x d x n x V
+        
+        D = tf.divide(D,s) # b x e d x n x V
+        
+        D = tf.tensordot(D,self.Wv,1) # b x e x d x n x w_e
+        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)  # b x e x d x n x e_e
+        
+        D = tf.reduce_sum(D,2) # b x e x n x e_e
+        D = tf.reduce_sum(D,2) # b x e x e_e
+        return D
+#        D = tf.one_hot(self.vocabulary.lookup(D),self.vocab_size)
+#        D = tf.squeeze(D,axis=4) # b x e x d x n x V
+#        s = tf.reduce_sum(D,axis=2) # b x e x n x V
+#        s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
+#        D = tf.reduce_sum(D,axis=2)
+#        D = tf.divide(D,s) # b x e x n x V
+#        D = tf.tensordot(D, self.Wv,1) # b x e x n x emb
+#        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)
+#        return tf.reduce_sum(D,axis = 2)
     
     # projects ngrams into entity embedding space
-    # batch x ngrams x n
+    # batch x ngrams x w
     # returns batch x ngrams x emb
     def project(self,ngrams):
-        D = tf.one_hot(self.vocabulary.lookup(ngrams),self.vocab_size)
-        s = tf.reduce_sum(D,axis=3)
-#        s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
-        w = tf.zeros(tf.shape(s))
-        s = tf.reduce_sum(tf.cast(tf.equal(w,s),tf.float32))
-        D = tf.reduce_sum(D,axis=2) # b x ngrams x V
-        D = tf.divide(D,s)
-        D = tf.tensordot(D, self.Wv,1)
-        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)
+        
+        D = self.vocabulary.lookup(ngrams) # b x n x w x V
+        t = tf.cast(tf.equal(D,tf.constant(0,dtype=tf.int64)),tf.float32)
+        D = tf.cast(tf.cast(D,tf.float32)-t,tf.int64)
+        D = tf.one_hot(D,self.vocab_size) # b x n x w x V
+        s = tf.reduce_sum(D,axis=3) # b x n x w
+        s = tf.reduce_sum(s,axis=2,keep_dims=True) + self.e # b x n x 1
+        
+        D = tf.reduce_sum(D,axis=2) # b x n x V
+        D = tf.divide(D,s) 
+            
+        D = tf.tensordot(D,self.Wv,1) # b x n x w_e
+        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)  # b x n x e_e
+#        D = tf.one_hot(self.vocabulary.lookup(ngrams),self.vocab_size)
+#        s = tf.reduce_sum(D,axis=3)
+##        s = tf.cast(tf.reduce_sum(tf.where(s == 0,0,1)),tf.float32)
+#        w = tf.zeros(tf.shape(s))
+#        s = tf.reduce_sum(tf.cast(tf.equal(w,s),tf.float32))
+#        D = tf.reduce_sum(D,axis=2) # b x ngrams x V
+#        D = tf.divide(D,s)
+#        D = tf.tensordot(D, self.Wv,1)
+#        D = tf.tanh(tf.tensordot(D,self.W,1) + self.b)
         return D
     
     # returns similarity score 
