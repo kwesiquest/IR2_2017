@@ -68,14 +68,14 @@ def pad_entity(entity,leng=0):
         while len(doc) < leng:
             doc.append(['z3r0'] * N_GRAM_SIZE)
 
-BATCH_SIZE = 1
+BATCH_SIZE = 128
 W_SIZE = 100
 E_SIZE = 150
 LEARNING_RATE = 1e-3
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 TRAIN_STEPS = 1000
-N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 1
+N_GRAM_SIZE = 3
+DISSIMILAR_AMOUNT = 5
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
@@ -130,10 +130,10 @@ with tf.Session() as sess:
     sess.run(init)
     tf.tables_initializer().run()
     
-    batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
     
     for i in range(TRAIN_STEPS):
         print("train step:", i)
+        batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
 
         
         ngrams = copy.deepcopy(batch.docs)
