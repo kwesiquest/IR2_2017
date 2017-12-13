@@ -74,7 +74,7 @@ E_SIZE = 150
 LEARNING_RATE = 1e-3
 PATH_TO_DATA = '/home/sdemo210/reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
-TRAIN_STEPS = 1000
+TRAIN_STEPS = 10
 N_GRAM_SIZE = 3
 DISSIMILAR_AMOUNT = 5
 
@@ -195,7 +195,7 @@ with tf.Session() as sess:
         #print("loss:", sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
         sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
-	print("loss:", e_loss)
+        print("loss:", e_loss)
         trainWriter.add_summary(summ, global_step=i)
     
     

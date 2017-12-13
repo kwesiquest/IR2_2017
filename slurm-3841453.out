@@ -1,0 +1,4 @@
+  File "/home/sdemo210/IR2_2017/LSE_train.py", line 198
+    print("loss:", e_loss)
+                         ^
+TabError: inconsistent use of tabs and spaces in indentation
