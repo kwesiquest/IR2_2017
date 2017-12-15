@@ -61,10 +61,10 @@ class EntityDict:
 
 
 
-	def get_random_id(self, entity_id="0"):
+	def get_random_id(self, entity_ids=["0"]):
 		g = gzip.open(self.path, 'rb')
-		different_id = entity_id
-		while(entity_id == different_id):
+		different_id = np.random.choice(self.entities)
+		while different_id in entity_ids:
 			different_id = np.random.choice(self.entities)
 		return different_id
 
@@ -74,9 +74,12 @@ class EntityDict:
 
 	def get_dissimilars(self, entity_id, z):
 		dissimilars = []
+		entity_ids = [entity_id]
 		for _ in range(0, z):
+			dissimilar_id = self.get_random_id(entity_ids)
+			entity_ids.append(dissimilar_id)
 			# dissimilars += self.entity_dict[self.get_random_id(entity_id)] #dissimilars is a list of documents
-			dissimilars.append(self.entity_dict[self.get_random_id(entity_id)]) #dissimilars is a list of entities
+			dissimilars.append(self.entity_dict[dissimilar_id]) #dissimilars is a list of entities
 		return dissimilars
 
 	def move_pointers(self):
@@ -141,9 +144,9 @@ if __name__ == '__main__':
 
 	parser = EntityDict(path, n, True)
 
-	values = parser.get_random_batch(2, 15)
+	values = parser.get_random_batch(4, 15)
 
-	for value, docs in zip(values.entity_ids, values.docs):
+	for value, docs in zip(values.entity_ids, values.dissimilars):
 		print(value, len(docs))
 
 
