@@ -209,6 +209,7 @@ with tf.Session() as sess:
         print("loss:", e_loss)
         trainWriter.add_summary(summ, global_step=i)
     
-    direc = os.getcwd()
-    path = saver.save(sess, direc + '/saves/model.ckpt')
-    print('Saved in ', path)
+        if i % 1000 == 0 or i == TRAIN_STEPS:
+            direc = os.getcwd()
+            path = saver.save(sess, direc + '/saves/model.ckpt')
+            print('Saved in ', path)
