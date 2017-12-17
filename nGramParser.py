@@ -59,6 +59,15 @@ class EntityDict:
 		for l in g:
 			yield eval(l)
 
+	#returns words
+	def parse_dict(self):
+		for entity_id in self.entities:
+			for doc in self.entity_dict[entity_id]:
+				words = []
+				for n_gram in doc:
+					words += n_gram
+				# yield ' '.join(set(words))
+				yield ' '.join(words)
 
 
 	def get_random_id(self, entity_ids=["0"]):
@@ -78,6 +87,9 @@ class EntityDict:
 		for _ in range(0, z):
 			dissimilar_id = self.get_random_id(entity_ids)
 			entity_ids.append(dissimilar_id)
+			if len(entity_ids) == len(self.entities): #if z is bigger then the number of entities this keeps the code from looping after all the other entities where used as dissimilar
+				enity_ids = [enity_id]
+
 			# dissimilars += self.entity_dict[self.get_random_id(entity_id)] #dissimilars is a list of documents
 			dissimilars.append(self.entity_dict[dissimilar_id]) #dissimilars is a list of entities
 		return dissimilars
@@ -144,10 +156,14 @@ if __name__ == '__main__':
 
 	parser = EntityDict(path, n, True)
 
-	values = parser.get_random_batch(4, 15)
+	for x in parser.parse_dict():
+		print(x)
 
-	for value, docs in zip(values.entity_ids, values.dissimilars):
-		print(value, len(docs))
+
+	# values = parser.get_random_batch(3, 15)
+
+	# for value, docs in zip(values.entity_ids, values.dissimilars):
+	# 	print(value, len(docs))
 
 
 	# i = 0

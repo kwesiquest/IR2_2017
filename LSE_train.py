@@ -8,7 +8,7 @@ Created on Wed Nov 22 12:59:14 2017
 import numpy as np
 import tensorflow as tf
 from nGramParser import EntityDict as edict
-from nGramTokenMap import Vocab
+from nGramTokenMap2 import Vocab
 import sys
 import copy 
 from LSE import LSE as LSE
@@ -74,23 +74,24 @@ def next_folder():
     nr = 11
     while exists(name+str(nr)):
         nr += 1
+    print("using folder", nr)
     return name + str(nr)
 
-BATCH_SIZE = 1
+BATCH_SIZE = 10
 W_SIZE = 100
 E_SIZE = 150
 LEARNING_RATE = 1e-3
 # PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
-TRAIN_STEPS = 10
+TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
 DISSIMILAR_AMOUNT = 1
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
 print('Preprocessing')
-vocab = Vocab(PATH_TO_DATA)
+vocab = Vocab(PATH_TO_DATA, data)
 #vocabulary = ['z3r0','a','b','c','d']
 vocabulary = ['z3r0','Unk']
 

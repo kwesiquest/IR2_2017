@@ -90,9 +90,15 @@ class LSE(object):
         
         return S + SD
     
-    # returns mean loss of b x 1
+    # # returns mean loss of b x 1
+    # def loss(self, similarity):
+    #     return tf.negative(tf.reduce_mean(similarity))
+
+# returns mean loss of b x 1
     def loss(self, similarity):
-        return - tf.reduce_mean(similarity)
+        regularizer = tf.contrib.layers.l2_regularizer(0.05)
+        reg = tf.contrib.layers.apply_regularization(regularizer,[self.Wv, self.W])
+        return - tf.reduce_mean(similarity) + reg
     
     def train_step(self,loss):
         
