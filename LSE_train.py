@@ -14,7 +14,7 @@ import copy
 from LSE import LSE as LSE
 import operator
 from os.path import exists
-
+import os
    
 def pad_dissimilar(dissimilars):
     
@@ -136,6 +136,8 @@ tf.summary.scalar('Loss', loss)
 merged = tf.summary.merge_all()
 trainWriter = tf.summary.FileWriter(next_folder())
 
+saver = tf.train.Saver()
+
 print('Start Training')
 with tf.Session() as sess:
     sess.run(init)
@@ -207,4 +209,6 @@ with tf.Session() as sess:
         print("loss:", e_loss)
         trainWriter.add_summary(summ, global_step=i)
     
-    
+    direc = os.getcwd()
+    path = saver.save(sess, direc + '/saves/model.ckpt')
+    print('Saved in ', path)
