@@ -80,17 +80,14 @@ class LSE(object):
         
         projection = tf.transpose(projection,[0,2,1]) # b x e_emb x 1
         
-        similar = tf.expand_dims(similar,1) # b x 1 x e_emb
-#        S = tf.sigmoid(tf.matmul(similar,projection)) # b x 1
-        S = tf.losses.cosine_distance(similar,projection)
-        S = tf.log(S)
-        
-#        SD = tf.sigmoid(tf.matmul(dissimilar, projection)) # b x e #draai deze om om iets lerends te krijgen
-        SD = tf.losses.cosine_distance(dissimilar,projection)
-        SD = tf.log((1- SD + self.e))
+        similar = tf.expand_dims(similar,1) # b x 1 x e_emb        
+        S = tf.matmul(similar,projection) / (tf.norm(similar)**2 * tf.norm(projection)**2) # b x 1
+#        S = tf.log(S + self.e)
+        SD = tf.matmul(dissimilar, projection) / (tf.norm(dissimilar)**2 * tf.norm(projection)**2) # b x e #draai deze om om iets lerends te krijgen
+#        SD = tf.log((1- SD + self.e))
         SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # b x 1
         
-        return S + SD
+        return S - SD
     
     # # returns mean loss of b x 1
     # def loss(self, similarity):
