@@ -69,8 +69,8 @@ def pad_entity(entity,leng=0):
         while len(doc) < leng:
             doc.append(['z3r0'] * N_GRAM_SIZE)
 
-def next_folder():
-    name = 'summaries/train/run'
+def next_folder(sub):
+    name = 'summaries/' + sub+ '/run'
     nr = 11
     while exists(name+str(nr)):
         nr += 1
@@ -80,7 +80,7 @@ def next_folder():
 BATCH_SIZE = 10
 W_SIZE = 300
 E_SIZE = 128
-LEARNING_RATE = 1e-2
+LEARNING_RATE = 1e-1
 # PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
@@ -134,7 +134,8 @@ init = tf.global_variables_initializer()
 
 tf.summary.scalar('Loss', loss)
 merged = tf.summary.merge_all()
-trainWriter = tf.summary.FileWriter(next_folder())
+trainWriter = tf.summary.FileWriter(next_folder('train'))
+testWriter = tf.summary.FileWriter(next_folder('test'))
 
 saver = tf.train.Saver()
 
@@ -143,14 +144,40 @@ with tf.Session() as sess:
     sess.run(init)
     tf.tables_initializer().run()
     
-    batch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
+    testbatch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
+    
+    ngrams_t = copy.deepcopy(testbatch.docs)
+    similar_t = copy.deepcopy(testbatch.similars)
+    dissimilars_t = copy.deepcopy(testbatch.dissimilars)
+    
+    pad_entity(ngrams_t)             
+    pad_entities(similar_t)
+    pad_dissimilar(dissimilars_t)
+    
+    dissimilars_t = np.array(dissimilars_t)
+    dissimilars_t = np.transpose(dissimilars_t,[1,0,2,3,4])
+#        print(dissimilars.shape)
+    
+    diss_t = None
+    new = True
+    for dissimilar in dissimilars_t:
+        dissimilar_feed = {documents_placeholder: dissimilar}
+        dissimilar_emb = sess.run(entity,feed_dict = dissimilar_feed)
+        dissimilar_emb = np.expand_dims(dissimilar_emb,1)
+        if new == True:
+            diss_t = dissimilar_emb
+            new = False
+        else:
+            diss_t = np.concatenate((diss_t,dissimilar_emb), 1)
+            
     
     for i in range(TRAIN_STEPS):
         print("train step:", i)
+        trainbatch = data.get_random_batch(DISSIMILAR_AMOUNT,BATCH_SIZE)
         
-        ngrams = copy.deepcopy(batch.docs)
-        similar = copy.deepcopy(batch.similars)
-        dissimilars = copy.deepcopy(batch.dissimilars)
+        ngrams = copy.deepcopy(trainbatch.docs)
+        similar = copy.deepcopy(trainbatch.similars)
+        dissimilars = copy.deepcopy(trainbatch.dissimilars)
 #        ngrams = copy.deepcopy(A)
 #        similar = copy.deepcopy(B)
 #        dissimilars = copy.deepcopy(C)
@@ -208,8 +235,13 @@ with tf.Session() as sess:
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         print("loss:", e_loss)
         trainWriter.add_summary(summ, global_step=i)
+        
+        if i % 10 == 0:
+            summ, t_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams_t, documents_placeholder: similar_t, dissimilar_placeholder: diss_t})
+            print("test loss:", t_loss)
+            testWriter.add_summary(summ, global_step=i)
     
         if i % 1000 == 0 or i == TRAIN_STEPS:
             direc = os.getcwd()
-            path = saver.save(sess, direc + '/saves/model_new.ckpt')
+            path = saver.save(sess, direc + '/saves/model_basic.ckpt')
             print('Saved in ', path)
