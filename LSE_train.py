@@ -11,7 +11,7 @@ from nGramParser import EntityDict as edict
 from nGramTokenMap2 import Vocab
 import sys
 import copy 
-from LSE import LSE as LSE
+from LSE_new import LSE as LSE
 import operator
 from os.path import exists
 import os
@@ -78,9 +78,9 @@ def next_folder():
     return name + str(nr)
 
 BATCH_SIZE = 10
-W_SIZE = 100
-E_SIZE = 150
-LEARNING_RATE = 1e-3
+W_SIZE = 300
+E_SIZE = 128
+LEARNING_RATE = 1e-2
 # PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
@@ -115,7 +115,7 @@ print('Vocab size:', vocab_size)
 entity_amount = 1
 
 print('Initializing Model')
-model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE)
+model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE,DISSIMILAR_AMOUNT)
 print('Finished Model')
 
 ngrams_placeholder = tf.placeholder(tf.string, shape=(None,N_GRAM_SIZE))
@@ -202,8 +202,8 @@ with tf.Session() as sess:
         
         
         
-#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
-        #print("loss:", sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
+#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
+#        print("loss:", sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
         sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         print("loss:", e_loss)
@@ -211,5 +211,5 @@ with tf.Session() as sess:
     
         if i % 1000 == 0 or i == TRAIN_STEPS:
             direc = os.getcwd()
-            path = saver.save(sess, direc + '/saves/model.ckpt')
+            path = saver.save(sess, direc + '/saves/model_new.ckpt')
             print('Saved in ', path)

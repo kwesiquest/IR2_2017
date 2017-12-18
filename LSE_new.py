@@ -9,7 +9,7 @@ import tensorflow as tf
 
 class LSE(object):
 
-    def __init__(self,batch_size, word_emb_size, entity_emb_size,vocab_size, vocabulary, entity_amount, learning_rate):
+    def __init__(self,batch_size, word_emb_size, entity_emb_size,vocab_size, vocabulary, entity_amount, learning_rate,dissimilar_amount):
         
         self.word_emb_size = word_emb_size
         self.entity_emb_size = entity_emb_size
@@ -19,6 +19,7 @@ class LSE(object):
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.e = 1e-5
+        self.d = dissimilar_amount
         
         initializer_weights = tf.variance_scaling_initializer()
         initializer_biases  = tf.constant_initializer(0.0)
@@ -79,15 +80,21 @@ class LSE(object):
     def similarity(self,similar, dissimilar, projection):
         
         projection = tf.transpose(projection,[0,2,1]) # b x e_emb x 1
-        
+#        
         similar = tf.expand_dims(similar,1) # b x 1 x e_emb        
-        S = tf.matmul(similar,projection) / (tf.norm(similar)**2 * tf.norm(projection)**2) # b x 1
-#        S = tf.log(S + self.e)
-        SD = tf.matmul(dissimilar, projection) / (tf.norm(dissimilar)**2 * tf.norm(projection)**2) # b x e #draai deze om om iets lerends te krijgen
-#        SD = tf.log((1- SD + self.e))
-        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # b x 1
+        S = tf.sigmoid(tf.matmul(similar,projection)) #/ (tf.norm(similar)**2 * tf.norm(projection)**2) # b x 1
+        S = tf.log(S + self.e)
+        SD = tf.sigmoid(tf.matmul(dissimilar, projection))# / (tf.norm(dissimilar)**2 * tf.norm(projection)**2) # b x e 
+        SD = tf.log((SD + self.e))
+#        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # b x 1
+#        
+        logits = tf.squeeze(tf.stack((S,SD),axis=1))
+        labels = tf.one_hot([0]*self.batch_size, self.d+1)
+        return tf.losses.hinge_loss(labels,logits)
+
+#        return S - SD - 1 - self.d
+
         
-        return S - SD
     
     # # returns mean loss of b x 1
     # def loss(self, similarity):
@@ -97,7 +104,8 @@ class LSE(object):
     def loss(self, similarity):
         regularizer = tf.contrib.layers.l2_regularizer(0.05)
         reg = tf.contrib.layers.apply_regularization(regularizer,[self.Wv, self.W])
-        return - tf.reduce_mean(similarity) + reg
+#        return - tf.reduce_mean(similarity) #+ reg
+        return similarity # + reg
     
     def train_step(self,loss):
         
