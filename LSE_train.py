@@ -86,7 +86,7 @@ PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
 TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 1
+DISSIMILAR_AMOUNT = 5
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
@@ -99,7 +99,7 @@ full_vocab = vocab.vocab_freq
 sorted_vocab = sorted(full_vocab.items(), key=operator.itemgetter(1), reverse=True)
 full_vocab = [tup[0] for tup in sorted_vocab]
 print("full vocab size:", len(full_vocab))
-vocabulary += full_vocab[:20000]
+vocabulary += full_vocab[:6000]
 
 
 #vocabulary += list(vocab.token2idx.keys())[:1000]
@@ -115,7 +115,7 @@ print('Vocab size:', vocab_size)
 entity_amount = 1
 
 print('Initializing Model')
-model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE,DISSIMILAR_AMOUNT)
+model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE)
 print('Finished Model')
 
 ngrams_placeholder = tf.placeholder(tf.string, shape=(None,N_GRAM_SIZE))
