@@ -20,6 +20,7 @@ class LSE(object):
         self.batch_size = batch_size
         self.e = 1e-5
         self.d = dissimilar_amount
+        print('D',self.d)
         
         initializer_weights = tf.contrib.layers.xavier_initializer()
         initializer_biases  = tf.constant_initializer(0.0)
@@ -87,13 +88,14 @@ class LSE(object):
         SD = tf.matmul(dissimilar, projection)# / (tf.norm(dissimilar)**2 * tf.norm(projection)**2) # b x e 
 #        SD = tf.log((SD + self.e))
 #        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # b x 1
-#        
-        logits = tf.squeeze(tf.stack((S,SD),axis=1))
+        logits = tf.squeeze(tf.concat((S,SD),axis=1))
         labels = tf.one_hot([0]*self.batch_size, self.d+1)
 #        logits = tf.squeeze(S)
 #        labels = [1]*10
-        return tf.losses.sigmoid_cross_entropy(labels,logits,reduction=tf.losses.Reduction.NONE)
-
+        print(labels.shape)
+        print(logits.shape)
+#        return tf.losses.sigmoid_cross_entropy(labels,logits,reduction=tf.losses.Reduction.NONE)
+        return logits
 #        return S - SD - 1 - self.d
 
         

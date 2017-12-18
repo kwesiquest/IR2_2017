@@ -86,7 +86,7 @@ PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
 TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 1
+DISSIMILAR_AMOUNT = 5
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
@@ -120,19 +120,19 @@ print('Finished Model')
 
 ngrams_placeholder = tf.placeholder(tf.string, shape=(None,N_GRAM_SIZE))
 documents_placeholder = tf.placeholder(tf.string, shape=(None,None,None,N_GRAM_SIZE))
-dissimilar_placeholder = tf.placeholder(tf.float32, shape=(None, None, E_SIZE))
+dissimilar_placeholder = tf.placeholder(tf.float32, shape=(None, DISSIMILAR_AMOUNT, E_SIZE))
 
 global_step = tf.Variable(0)
 
 entity = model.entityEmbedding(documents_placeholder)
 projection = model.project(ngrams_placeholder)
 similarity = model.similarity(entity, dissimilar_placeholder, projection)
-loss = model.loss(similarity)
-train_step = model.train_step(loss)
+#loss = model.loss(similarity)
+#train_step = model.train_step(loss)
 
 init = tf.global_variables_initializer()
 
-tf.summary.scalar('Loss', loss)
+#tf.summary.scalar('Loss', loss)
 merged = tf.summary.merge_all()
 trainWriter = tf.summary.FileWriter(next_folder('train'))
 testWriter = tf.summary.FileWriter(next_folder('test'))
@@ -225,23 +225,21 @@ with tf.Session() as sess:
             else:
                 diss = np.concatenate((diss,dissimilar_emb), 1)
         #print('----')
-#        print(diss.shape)
         
         
-        
-#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
+        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}).shape)
 #        print("loss:", sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
-        sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
-        summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
-        print("loss:", e_loss)
-        trainWriter.add_summary(summ, global_step=i)
-        
-        if i % 10 == 0:
-            summ, t_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams_t, documents_placeholder: similar_t, dissimilar_placeholder: diss_t})
-            print("test loss:", t_loss)
-            testWriter.add_summary(summ, global_step=i)
-    
-        if i % 1000 == 0 or i == TRAIN_STEPS:
-            direc = os.getcwd()
-            path = saver.save(sess, direc + '/saves/model_basic.ckpt')
-            print('Saved in ', path)
+#        sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
+#        summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
+#        print("loss:", e_loss)
+#        trainWriter.add_summary(summ, global_step=i)
+#        
+#        if i % 10 == 0:
+#            summ, t_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams_t, documents_placeholder: similar_t, dissimilar_placeholder: diss_t})
+#            print("test loss:", t_loss)
+#            testWriter.add_summary(summ, global_step=i)
+#    
+#        if i % 1000 == 0 or i == TRAIN_STEPS:
+#            direc = os.getcwd()
+#            path = saver.save(sess, direc + '/saves/model_basic.ckpt')
+#            print('Saved in ', path)
