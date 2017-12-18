@@ -88,7 +88,7 @@ class LSE(object):
 #        SD = tf.log((SD + self.e))
 #        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # b x 1
 #        
-        logits = tf.squeeze(tf.stack((S,SD),axis=1))
+        logits = tf.squeeze(tf.concat((S,SD),axis=1))
         labels = tf.one_hot([0]*self.batch_size, self.d+1)
         return tf.losses.hinge_loss(labels,logits)
 

@@ -92,10 +92,7 @@ class LSE(object):
         labels = tf.one_hot([0]*self.batch_size, self.d+1)
 #        logits = tf.squeeze(S)
 #        labels = [1]*10
-        print(labels.shape)
-        print(logits.shape)
-#        return tf.losses.sigmoid_cross_entropy(labels,logits,reduction=tf.losses.Reduction.NONE)
-        return logits
+        return tf.losses.sigmoid_cross_entropy(labels,logits,reduction=tf.losses.Reduction.NONE)
 #        return S - SD - 1 - self.d
 
         
