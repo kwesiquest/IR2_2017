@@ -241,5 +241,5 @@ with tf.Session() as sess:
     
         if i % 1000 == 0 or i == TRAIN_STEPS:
             direc = os.getcwd()
-            path = saver.save(sess, direc + '/saves/model_basic.ckpt')
+            path = saver.save(sess, direc + '/saves/model_cross.ckpt')
             print('Saved in ', path)

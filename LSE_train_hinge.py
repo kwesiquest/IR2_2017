@@ -77,7 +77,7 @@ def next_folder(sub):
     print("using folder", nr)
     return name + str(nr)
 
-BATCH_SIZE = 10
+BATCH_SIZE = 25
 W_SIZE = 300
 E_SIZE = 128
 LEARNING_RATE = 1e-1
@@ -241,5 +241,5 @@ with tf.Session() as sess:
     
         if i % 1000 == 0 or i == TRAIN_STEPS:
             direc = os.getcwd()
-            path = saver.save(sess, direc + '/saves/model_basic.ckpt')
+            path = saver.save(sess, direc + '/saves/model_hinge.ckpt')
             print('Saved in ', path)
