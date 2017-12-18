@@ -11,7 +11,7 @@ from nGramParser import EntityDict as edict
 from nGramTokenMap2 import Vocab
 import sys
 import copy 
-from LSE_new import LSE as LSE
+from LSE import LSE as LSE
 import operator
 from os.path import exists
 import os
