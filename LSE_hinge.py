@@ -90,7 +90,7 @@ class LSE(object):
 #        
         logits = tf.squeeze(tf.concat((S,SD),axis=1))
         labels = tf.one_hot([0]*self.batch_size, self.d+1)
-        return tf.losses.hinge_loss(labels,logits)
+        return tf.losses.hinge_loss(labels,logits, reduction=tf.losses.Reduction.NONE)
 
 #        return S - SD - 1 - self.d
 
@@ -105,7 +105,7 @@ class LSE(object):
         regularizer = tf.contrib.layers.l2_regularizer(0.05)
         reg = tf.contrib.layers.apply_regularization(regularizer,[self.Wv, self.W])
 #        return - tf.reduce_mean(similarity) #+ reg
-        return similarity # + reg
+        return tf.reduce_mean(similarity) # + reg
     
     def train_step(self,loss):
         

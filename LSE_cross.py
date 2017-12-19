@@ -106,7 +106,7 @@ class LSE(object):
         regularizer = tf.contrib.layers.l2_regularizer(0.05)
         reg = tf.contrib.layers.apply_regularization(regularizer,[self.Wv, self.W])
 #        return - tf.reduce_mean(similarity) #+ reg
-        return tf.reduce_mean(similarity)  + reg
+        return tf.reduce_mean(similarity)  #+ reg
     
     def train_step(self,loss):
         

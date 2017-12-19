@@ -77,7 +77,7 @@ def next_folder(sub):
     print("using folder", nr)
     return name + str(nr)
 
-BATCH_SIZE = 10
+BATCH_SIZE = 25
 W_SIZE = 300
 E_SIZE = 128
 LEARNING_RATE = 1e-1
@@ -86,7 +86,7 @@ PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
 TRAIN_STEPS = 1000
 N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 5
+DISSIMILAR_AMOUNT = 1
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
