@@ -11,7 +11,7 @@ from nGramParser import EntityDict as edict
 from nGramTokenMap2 import Vocab
 import sys
 import copy 
-from LSE import LSE as LSE
+from LSE_hinge import LSE as LSE
 import operator
 from os.path import exists
 import os
@@ -77,16 +77,16 @@ def next_folder(sub):
     print("using folder", nr)
     return name + str(nr)
 
-BATCH_SIZE = 10
+BATCH_SIZE = 25
 W_SIZE = 300
 E_SIZE = 128
 LEARNING_RATE = 1e-1
 # PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
-TRAIN_STEPS = 1000
+TRAIN_STEPS = 5000
 N_GRAM_SIZE = 1
-DISSIMILAR_AMOUNT = 5
+DISSIMILAR_AMOUNT = 1
 
 print('Loading data')
 data = edict(PATH_TO_DATA,N_GRAM_SIZE,True)
@@ -99,7 +99,7 @@ full_vocab = vocab.vocab_freq
 sorted_vocab = sorted(full_vocab.items(), key=operator.itemgetter(1), reverse=True)
 full_vocab = [tup[0] for tup in sorted_vocab]
 print("full vocab size:", len(full_vocab))
-vocabulary += full_vocab[:6000]
+vocabulary += full_vocab[:20000]
 
 
 #vocabulary += list(vocab.token2idx.keys())[:1000]
@@ -115,12 +115,12 @@ print('Vocab size:', vocab_size)
 entity_amount = 1
 
 print('Initializing Model')
-model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE)
+model = LSE(BATCH_SIZE,W_SIZE,E_SIZE,vocab_size,vocabulary,entity_amount, LEARNING_RATE,DISSIMILAR_AMOUNT)
 print('Finished Model')
 
 ngrams_placeholder = tf.placeholder(tf.string, shape=(None,N_GRAM_SIZE))
 documents_placeholder = tf.placeholder(tf.string, shape=(None,None,None,N_GRAM_SIZE))
-dissimilar_placeholder = tf.placeholder(tf.float32, shape=(None, None, E_SIZE))
+dissimilar_placeholder = tf.placeholder(tf.float32, shape=(None, DISSIMILAR_AMOUNT, E_SIZE))
 
 global_step = tf.Variable(0)
 
@@ -225,11 +225,9 @@ with tf.Session() as sess:
             else:
                 diss = np.concatenate((diss,dissimilar_emb), 1)
         #print('----')
-#        print(diss.shape)
         
         
-        
-#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
+#        print(sess.run(similarity,feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}).shape)
 #        print("loss:", sess.run(loss, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss}))
         sess.run(train_step, feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
         summ, e_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams, documents_placeholder: similar, dissimilar_placeholder: diss})
@@ -243,5 +241,5 @@ with tf.Session() as sess:
     
         if i % 1000 == 0 or i == TRAIN_STEPS:
             direc = os.getcwd()
-            path = saver.save(sess, direc + '/saves/model_basic.ckpt')
+            path = saver.save(sess, direc + '/saves/model_hinge.ckpt')
             print('Saved in ', path)

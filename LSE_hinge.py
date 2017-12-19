@@ -83,14 +83,14 @@ class LSE(object):
 #        
         similar = tf.expand_dims(similar,1) # b x 1 x e_emb        
         S = tf.sigmoid(tf.matmul(similar,projection)) #/ (tf.norm(similar)**2 * tf.norm(projection)**2) # b x 1
-        S = tf.log(S + self.e)
+#        S = tf.log(S + self.e)
         SD = tf.sigmoid(tf.matmul(dissimilar, projection))# / (tf.norm(dissimilar)**2 * tf.norm(projection)**2) # b x e 
-        SD = tf.log((SD + self.e))
+#        SD = tf.log((SD + self.e))
 #        SD = tf.reduce_sum(SD, axis = 1, keep_dims = True) # b x 1
 #        
-        logits = tf.squeeze(tf.stack((S,SD),axis=1))
+        logits = tf.squeeze(tf.concat((S,SD),axis=1))
         labels = tf.one_hot([0]*self.batch_size, self.d+1)
-        return tf.losses.hinge_loss(labels,logits)
+        return tf.losses.hinge_loss(labels,logits, reduction=tf.losses.Reduction.NONE)
 
 #        return S - SD - 1 - self.d
 
@@ -105,7 +105,7 @@ class LSE(object):
         regularizer = tf.contrib.layers.l2_regularizer(0.05)
         reg = tf.contrib.layers.apply_regularization(regularizer,[self.Wv, self.W])
 #        return - tf.reduce_mean(similarity) #+ reg
-        return similarity # + reg
+        return tf.reduce_mean(similarity) # + reg
     
     def train_step(self,loss):
         

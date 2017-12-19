@@ -88,7 +88,7 @@ class EntityDict:
 			dissimilar_id = self.get_random_id(entity_ids)
 			entity_ids.append(dissimilar_id)
 			if len(entity_ids) == len(self.entities): #if z is bigger then the number of entities this keeps the code from looping after all the other entities where used as dissimilar
-				enity_ids = [enity_id]
+				enity_ids = [entity_id]
 
 			# dissimilars += self.entity_dict[self.get_random_id(entity_id)] #dissimilars is a list of documents
 			dissimilars.append(self.entity_dict[dissimilar_id]) #dissimilars is a list of entities
