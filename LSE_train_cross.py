@@ -77,15 +77,15 @@ def next_folder(sub):
     print("using folder", nr)
     return name + str(nr)
 
-BATCH_SIZE = 25
+BATCH_SIZE = 10
 W_SIZE = 300
 E_SIZE = 128
-LEARNING_RATE = 1e-1
+LEARNING_RATE = 1e-2
 # PATH_TO_DATA = '/home/sdemo210/reviews_Home_and_Kitchen_5.json.gz'
 PATH_TO_DATA = 'reviews_Home_and_Kitchen_5.json.gz'
 #PATH_TO_DATA = 'reviews_Clothing_Shoes_and_Jewelry_5.json.gz'
-TRAIN_STEPS = 1000
-N_GRAM_SIZE = 1
+TRAIN_STEPS = 10000
+N_GRAM_SIZE = 4
 DISSIMILAR_AMOUNT = 1
 
 print('Loading data')
@@ -99,7 +99,7 @@ full_vocab = vocab.vocab_freq
 sorted_vocab = sorted(full_vocab.items(), key=operator.itemgetter(1), reverse=True)
 full_vocab = [tup[0] for tup in sorted_vocab]
 print("full vocab size:", len(full_vocab))
-vocabulary += full_vocab[:20000]
+vocabulary += full_vocab[:5000]
 
 
 #vocabulary += list(vocab.token2idx.keys())[:1000]
@@ -134,8 +134,8 @@ init = tf.global_variables_initializer()
 
 tf.summary.scalar('Loss', loss)
 merged = tf.summary.merge_all()
-trainWriter = tf.summary.FileWriter(next_folder('train'))
-testWriter = tf.summary.FileWriter(next_folder('test'))
+trainWriter = tf.summary.FileWriter(next_folder('train/cross'))
+testWriter = tf.summary.FileWriter(next_folder('test/cross'))
 
 saver = tf.train.Saver()
 
@@ -156,20 +156,7 @@ with tf.Session() as sess:
     
     dissimilars_t = np.array(dissimilars_t)
     dissimilars_t = np.transpose(dissimilars_t,[1,0,2,3,4])
-#        print(dissimilars.shape)
-    
-    diss_t = None
-    new = True
-    for dissimilar in dissimilars_t:
-        dissimilar_feed = {documents_placeholder: dissimilar}
-        dissimilar_emb = sess.run(entity,feed_dict = dissimilar_feed)
-        dissimilar_emb = np.expand_dims(dissimilar_emb,1)
-        if new == True:
-            diss_t = dissimilar_emb
-            new = False
-        else:
-            diss_t = np.concatenate((diss_t,dissimilar_emb), 1)
-            
+#        print(dissimilars.shape)       
     
     for i in range(TRAIN_STEPS):
         print("train step:", i)
@@ -235,11 +222,24 @@ with tf.Session() as sess:
         trainWriter.add_summary(summ, global_step=i)
         
         if i % 10 == 0:
+            
+            diss_t = None
+            new = True
+            for dissimilar in dissimilars_t:
+                dissimilar_feed = {documents_placeholder: dissimilar}
+                dissimilar_emb = sess.run(entity,feed_dict = dissimilar_feed)
+                dissimilar_emb = np.expand_dims(dissimilar_emb,1)
+                if new == True:
+                    diss_t = dissimilar_emb
+                    new = False
+                else:
+                    diss_t = np.concatenate((diss_t,dissimilar_emb), 1)
+            
             summ, t_loss = sess.run([merged, loss], feed_dict={ngrams_placeholder: ngrams_t, documents_placeholder: similar_t, dissimilar_placeholder: diss_t})
             print("test loss:", t_loss)
             testWriter.add_summary(summ, global_step=i)
     
-        if i % 1000 == 0 or i == TRAIN_STEPS:
+        if i % 50 == 0 or i == TRAIN_STEPS:
             direc = os.getcwd()
             path = saver.save(sess, direc + '/saves/model_cross.ckpt')
             print('Saved in ', path)
