@@ -47,7 +47,7 @@ class EntityDict:
 			try:
 				self.entity_dict[entity_id].append(nGrams)
 			except:
-				if limited and (len(self.entity_dict.keys()) >= 4):
+				if limited and (len(self.entity_dict.keys()) >= 100):
 					break
 				self.entity_dict[entity_id] = [nGrams]
 		self.entities = list(self.entity_dict.keys())
@@ -110,7 +110,15 @@ class EntityDict:
 		for n in range(0, nDocs):
 			return_value.entity_ids.append(self.get_random_id())
 			# return_value.docs.append(self.get_random_doc(return_value.entity_ids[n])[:])
-			doc = self.get_random_doc(return_value.entity_ids[n])[:]
+			doc = []
+			loopkiller = 0
+			while(len(doc)<1):
+				doc = self.get_random_doc(return_value.entity_ids[n])[:]
+				loopkiller+=1
+				if loopkiller == 10:
+					del return_value.entity_ids[n]
+					return_value.entity_ids.append(self.get_random_id())
+					loopkiller = 0
 			return_value.docs.append(doc[np.random.randint(len(doc))])
 			return_value.similars.append(self.entity_dict[return_value.entity_ids[n]][:])
 			return_value.dissimilars.append(self.get_dissimilars(return_value.entity_ids[n], z)[:])
@@ -154,16 +162,20 @@ if __name__ == '__main__':
 	path = FLAGS.path
 	n = FLAGS.n
 
-	parser = EntityDict(path, n, True)
+	# parser = EntityDict(path, n, True)
 
-	for x in parser.parse_dict():
-		print(x)
+	# # for x in parser.parse_dict():
+	# # 	print(x)
 
 
-	# values = parser.get_random_batch(3, 15)
+	# values = parser.get_random_batch(3, 5)
 
-	# for value, docs in zip(values.entity_ids, values.dissimilars):
-	# 	print(value, len(docs))
+	# for i in range(0, 10000):
+	# 	for value, doc in zip(values.entity_ids, values.docs):
+	# 		# print(len(doc), doc)
+	# 		if len(doc) < 1:
+	# 			print(i)
+
 
 
 	# i = 0
