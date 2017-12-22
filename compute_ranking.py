@@ -26,13 +26,13 @@ def project_entities(path, entities):
 
     with tf.Session() as sess:
 
-        new_saver = tf.train.import_meta_graph('saves/model_basic.ckpt.meta')
-        new_saver.restore(sess, tf.train.latest_checkpoint('./'))
+        new_saver = tf.train.import_meta_graph('../saves/model_basic.ckpt.meta')
+        new_saver.restore(sess, tf.train.latest_checkpoint('../saves/'))
         graph = tf.get_default_graph()
 
-        Wv = graph.get_tensor_by_name('Wv')
-        W = graph.get_tensor_by_name('W')
-        b = graph.get_tensor_by_name('b')
+        Wv = graph.get_operation_by_name('Wv')
+        W = graph.get_operation_by_name('W')
+        b = graph.get_operation_by_name('b')
 
         print("Model restored.")
 
@@ -43,8 +43,8 @@ def project_entities(path, entities):
 if __name__ == '__main__':
 
     ndcg = eval.NDCG_at_k()
-    entities = edict('../data/reviews_Home_and_Kitchen_5.json.gz', 2, True).entity_dict
-    project_entities('/saves/model_basic.ckpt', entities)
+    entities = edict('../reviews_Home_and_Kitchen_5.json.gz', 2, True).entity_dict
+    project_entities('../saves/model_basic.ckpt', entities)
 
     '''
     scores = []
