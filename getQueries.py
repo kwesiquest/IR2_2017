@@ -50,7 +50,7 @@ class Query(object):
                 for cats in query_categories:
                     query = tokenise(' '.join(set(word for s in (cat.split() for cat in cats) for word in s)))
                     query = ' '.join(query)
-                    
+
                     query_dict[query].append(entity_id)
         return query_dict
 
