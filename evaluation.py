@@ -5,7 +5,7 @@ class NDCG_at_k:
     def __init__(self, k=10):
         self.k = k
         max_relevance = [1] + [0] * k
-        self.normalizing_factor = self.NDCG(max_relevance, k, norm=False) 
+        self.normalizing_factor = self.NDCG(max_relevance, norm=False)
         
     def NDCG(self, ranking, norm):
         discounted_gain = []
