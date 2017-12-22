@@ -4,6 +4,9 @@
 *.pickle
 try.py
 
+# summaries from roderick's laptop.
+*.DESKTOP-V471CT6
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -82,7 +82,7 @@ class LSE(object):
         
         similar = tf.expand_dims(similar,1) # b x 1 x e_emb
         S = tf.sigmoid(tf.matmul(similar,projection)) # b x 1
-        S = tf.log(S)
+        S = tf.log(S + self.e)
         
         SD = tf.sigmoid(tf.matmul(dissimilar, projection)) # b x e #draai deze om om iets lerends te krijgen
         SD = tf.log((1- SD + self.e))
