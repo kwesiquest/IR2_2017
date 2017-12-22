@@ -1,0 +1,2 @@
+model_checkpoint_path: "/nfs/home6/sdemo210/saves/model_basic.ckpt"
+all_model_checkpoint_paths: "/nfs/home6/sdemo210/saves/model_basic.ckpt"
